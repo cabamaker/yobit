@@ -3,3 +3,4 @@
 yobit
 keys
 nonce
+/docker/influxdb/data/

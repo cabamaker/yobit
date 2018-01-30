@@ -1,0 +1,10 @@
+version: '2.1'
+
+services:
+
+  influxdb:
+    image: influxdb:1.3.9
+    container_name: 'influxdb'
+    volumes:
+      - "./etc:/etc/influxdb/:ro"
+      - "./data:/var/lib/influxdb/data:rw"
