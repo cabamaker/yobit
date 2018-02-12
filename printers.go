@@ -34,6 +34,8 @@ import (
 	"strings"
 	"time"
 	"sort"
+	"github.com/ikonovalov/go-coinmarketcap"
+	"github.com/leekchan/accounting"
 )
 
 var (
@@ -412,7 +414,7 @@ func printOrderInfo(orders map[string]OrderInfo) {
 	table.SetColumnColor(bold, bold, norm, norm, norm, norm, norm)
 	for order, info := range orders {
 		orderTime, _ := strconv.ParseInt(info.Created, 10, 64)
-		fill := math.Abs(info.Amount - info.StartAmount)/info.StartAmount * float64(100)
+		fill := math.Abs(info.Amount-info.StartAmount) / info.StartAmount * float64(100)
 		table.Append([]string{
 			order,
 			strings.ToUpper(info.Pair),
@@ -423,5 +425,28 @@ func printOrderInfo(orders map[string]OrderInfo) {
 			time.Unix(orderTime, 0).Format(time.Stamp),
 		})
 	}
+	table.Render()
+}
+
+func printCmcGlobalMarket(data coinmarketcap.GlobalMarketData) {
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{
+		"active assets",
+		"active currencies",
+		"active markets",
+		"btc percentage",
+		"total market cap usd",
+		"total 24 volume usd",
+	})
+	table.SetHeaderColor(bold, bold, bold, bold, bold, bold)
+	ac0p := accounting.Accounting{Symbol: "", Precision: 0}
+	table.Append([]string{
+		fmt.Sprintf("%d", data.ActiveAssets),
+		fmt.Sprintf("%d", data.ActiveCurrencies),
+		fmt.Sprintf("%d", data.ActiveMarkets),
+		fmt.Sprintf("%3.2f%%", data.BitcoinPercentageOfMarketCap),
+		ac0p.FormatMoney(data.TotalMarketCapUsd),
+		ac0p.FormatMoney(data.Total24hVolumeUsd),
+	})
 	table.Render()
 }

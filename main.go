@@ -32,6 +32,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	cmc "github.com/ikonovalov/go-coinmarketcap"
 )
 
 var (
@@ -65,7 +66,7 @@ var (
 	cmdActiveOrders    = app.Command("active-orders", "(ao) Show active orders").Alias("ao")
 	cmdActiveOrderPair = cmdActiveOrders.Arg("pair", "doge_usd...").Required().String()
 
-	cmdOrderInfo = app.Command("order", "(o) Detailed information about the chosen order").Alias("o")
+	cmdOrderInfo   = app.Command("order", "(o) Detailed information about the chosen order").Alias("o")
 	cmdOrderInfoId = cmdOrderInfo.Arg("id", "Order id").Required().String()
 
 	cmdTradeHistory     = app.Command("trade-history", "(th) Trade history").Alias("th")
@@ -83,6 +84,10 @@ var (
 
 	cmdCancelOrder        = app.Command("cancel", "(c) Cancels the chosen order").Alias("c")
 	cmdCancelOrderOrderId = cmdCancelOrder.Arg("order_id", "Order ID").Required().String()
+
+	cmdCmc = app.Command("cmc", "Access to the CMC data")
+	cmdCmcGlobals = cmdCmc.Command("global", "Show global markets").Default()
+	cmdCmcMarkets = cmdCmc.Command("markets", "Show markets")
 )
 
 func main() {
@@ -210,9 +215,19 @@ func main() {
 			cancelResult := <-channel
 			fmt.Printf("Order %d candeled\n", cancelResult.Result.OrderId)
 		}
-	case "short":
+	case "cmc global":
 		{
-
+			channel := make(chan cmc.GlobalMarketData)
+			go func() {
+				marketInfo, err := cmc.GetMarketData()
+				if err != nil {
+					fatal(err)
+				} else {
+					channel <- marketInfo
+				}
+			}()
+			marketInfo := <-channel
+			printCmcGlobalMarket(marketInfo)
 		}
 	default:
 		panic("Unknown command " + command)
